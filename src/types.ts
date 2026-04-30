@@ -1,4 +1,6 @@
-export type Role = 'admin' | 'student';
+import { Timestamp } from 'firebase/firestore';
+
+export type Role = 'admin' | 'user';
 
 export interface UserProfile {
   uid: string;
@@ -6,31 +8,36 @@ export interface UserProfile {
   role: Role;
   displayName: string;
   photoURL: string;
-  createdAt: any;
+  createdAt: Timestamp | { seconds: number; nanoseconds: number } | null;
 }
 
 export interface Idea {
   id: string;
   title: string;
-  description: string;
   domain: string;
-  difficulty: 'Beginner' | 'Intermediate' | 'Advanced';
+  difficulty: 'Beginner' | 'Intermediate' | 'Advanced' | string;
   price: number;
+  description: string;
+  visible: boolean;
+  media: string[]; // URLs
   createdBy: string;
-  createdAt: any;
+  createdAt: Timestamp | { seconds: number; nanoseconds: number } | null;
   purchaseCount: number;
-  rating: number;
 }
 
 export interface IdeaContent {
-  resources: string;
   implementationSteps: string;
+  resources: string;
 }
+
+export type PurchaseStatus = 'pending' | 'confirmed';
 
 export interface Purchase {
   id: string;
-  studentUid: string;
+  userId: string;
   ideaId: string;
-  purchasedAt: any;
-  priceAtPurchase: number;
+  status: PurchaseStatus;
+  createdAt: Timestamp | { seconds: number; nanoseconds: number } | null;
+  ideaTitle?: string;
+  priceAtPurchase?: number;
 }

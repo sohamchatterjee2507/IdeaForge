@@ -7,7 +7,7 @@
       "properties": {
         "uid": { "type": "string" },
         "email": { "type": "string" },
-        "role": { "type": "string", "enum": ["admin", "student"] },
+        "role": { "type": "string", "enum": ["admin", "user"] },
         "displayName": { "type": "string" },
         "photoURL": { "type": "string" },
         "createdAt": { "type": "string", "format": "date-time" }
@@ -23,15 +23,14 @@
         "description": { "type": "string" },
         "domain": { "type": "string" },
         "difficulty": { "type": "string", "enum": ["Beginner", "Intermediate", "Advanced"] },
-        "price": { "type": "number" },
-        "resources": { "type": "string" },
-        "implementationSteps": { "type": "string" },
+        "price": { "type": "number", "description": "Price in INR" },
+        "visible": { "type": "boolean" },
+        "media": { "type": "array", "items": { "type": "string" } },
         "createdBy": { "type": "string" },
         "createdAt": { "type": "string", "format": "date-time" },
-        "purchaseCount": { "type": "number" },
-        "rating": { "type": "number" }
+        "purchaseCount": { "type": "number" }
       },
-      "required": ["title", "description", "domain", "difficulty", "price"]
+      "required": ["title", "domain", "price", "visible"]
     },
     "IdeaContent": {
       "title": "Idea Content",
@@ -48,12 +47,13 @@
       "description": "Records of idea purchases",
       "type": "object",
       "properties": {
-        "studentUid": { "type": "string" },
+        "userId": { "type": "string" },
         "ideaId": { "type": "string" },
-        "purchasedAt": { "type": "string", "format": "date-time" },
+        "status": { "type": "string", "enum": ["pending", "confirmed"] },
+        "createdAt": { "type": "string", "format": "date-time" },
         "priceAtPurchase": { "type": "number" }
       },
-      "required": ["studentUid", "ideaId", "purchasedAt"]
+      "required": ["userId", "ideaId", "status", "createdAt"]
     }
   },
   "firestore": {

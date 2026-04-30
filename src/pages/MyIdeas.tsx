@@ -1,25 +1,31 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../lib/AuthContext';
 import { ideaService } from '../lib/ideaService';
-import { Idea } from '../types';
+import { Idea, Purchase } from '../types';
 import IdeaCard from '../components/IdeaCard';
-import { Loader2, BookOpen, Compass } from 'lucide-react';
+import { Loader2, Box, ArrowRight, ShieldCheck } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 export default function MyIdeas() {
   const { profile } = useAuth();
+  const [purchases, setPurchases] = useState<Purchase[]>([]);
   const [ideas, setIdeas] = useState<Idea[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (profile) {
-      const fetchPurchased = async () => {
-        const data = await ideaService.getPurchasedIdeas(profile.uid);
-        setIdeas(data);
-        setLoading(false);
-      };
-      fetchPurchased();
-    }
+    const load = async () => {
+      if (profile) {
+        const purchasesData = await ideaService.getPurchases(false, profile.uid);
+        setPurchases(purchasesData); // Keep all for status tracking
+
+        const confirmedPurchases = purchasesData.filter(p => p.status === 'confirmed');
+        const ideaPromises = confirmedPurchases.map(p => ideaService.getIdeaById(p.ideaId));
+        const ideasData = await Promise.all(ideaPromises);
+        setIdeas(ideasData.filter((i): i is Idea => i !== null));
+      }
+      setLoading(false);
+    };
+    load();
   }, [profile]);
 
   if (loading) {
@@ -30,32 +36,48 @@ export default function MyIdeas() {
     );
   }
 
+  const pendingCount = purchases.filter(p => p.status === 'pending').length;
+
   return (
-    <div className="max-w-7xl mx-auto px-4 py-10">
-      <header className="mb-12">
-        <h1 className="text-4xl font-bold mb-4">My Forge</h1>
-        <p className="text-neutral-500">The collection of project ideas you've unlocked. Happy engineering!</p>
+    <div className="pt-24 pb-20 px-4 max-w-7xl mx-auto space-y-12">
+      <header className="relative">
+        <h1 className="text-5xl font-black uppercase tracking-tighter italic text-white leading-none">The Vault</h1>
+        <p className="text-brand-yellow font-mono text-xs uppercase tracking-widest mt-2">Your forged and acquired project blueprints</p>
       </header>
 
-      {ideas.length > 0 ? (
-        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-8">
+      {pendingCount > 0 && (
+         <div className="bg-brand-yellow/10 border border-brand-yellow/20 p-6 rounded-3xl flex items-center justify-between">
+          <div className="flex items-center space-x-4">
+            <div className="p-3 bg-brand-yellow rounded-2xl shadow-lg shadow-brand-yellow/20">
+              <Box className="w-6 h-6 text-neutral-900" />
+            </div>
+            <div>
+              <div className="text-lg font-black uppercase italic text-white leading-tight">
+                {pendingCount} Pending Activation{pendingCount > 1 ? 's' : ''}
+              </div>
+              <p className="text-neutral-500 text-xs">Awaiting verification for your latest forge requests.</p>
+            </div>
+          </div>
+          <Link to="/cart" className="hidden sm:flex items-center space-x-2 text-brand-yellow font-black uppercase text-[10px] tracking-widest hover:translate-x-1 transition-transform">
+            <span>Checkout Guide</span>
+            <ArrowRight className="w-4 h-4" />
+          </Link>
+        </div>
+      )}
+
+      {ideas.length === 0 ? (
+        <div className="text-center py-24 bg-neutral-800/10 rounded-3xl border-2 border-dashed border-neutral-800">
+           <ShieldCheck className="w-16 h-16 text-neutral-800 mx-auto mb-6" />
+           <p className="text-neutral-500 font-bold uppercase tracking-widest mb-8">Your vault is currently empty.</p>
+           <Link to="/explore" className="bg-neutral-800/50 hover:bg-neutral-800 text-white px-8 py-3 rounded-xl border border-white/5 font-black uppercase tracking-widest text-xs transition-all">
+             Acquire Blueprints
+           </Link>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           {ideas.map((idea) => (
             <IdeaCard key={idea.id} idea={idea} isPurchased={true} />
           ))}
-        </div>
-      ) : (
-        <div className="text-center py-40 bg-neutral-800/10 border border-dashed border-neutral-800 rounded-3xl">
-          <BookOpen className="w-12 h-12 text-neutral-700 mx-auto mb-4" />
-          <h3 className="text-xl font-bold mb-2">No projects unlocked yet</h3>
-          <p className="text-neutral-600 mb-8 max-w-sm mx-auto">
-            You haven't purchased any project ideas yet. Explore our curated marketplace to find your next masterpiece.
-          </p>
-          <Link
-            to="/explore"
-            className="inline-flex items-center px-8 py-3 bg-brand-yellow text-neutral-900 rounded-xl font-bold transition-all hover:scale-105 glow-yellow"
-          >
-            <Compass className="w-5 h-5 mr-2" /> Explore Marketplace
-          </Link>
         </div>
       )}
     </div>

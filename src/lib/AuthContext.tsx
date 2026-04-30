@@ -8,7 +8,7 @@ import {
 } from 'firebase/auth';
 import { doc, getDoc, setDoc, serverTimestamp } from 'firebase/firestore';
 import { auth, db } from './firebase';
-import { UserProfile, Role } from '../types';
+import { UserProfile } from '../types';
 import { handleFirestoreError, OperationType } from './firestore-errors';
 
 interface AuthContextType {
@@ -43,7 +43,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             const newProfile: UserProfile = {
               uid: firebaseUser.uid,
               email: firebaseUser.email || '',
-              role: isAdmin ? 'admin' : 'student',
+              role: isAdmin ? 'admin' : 'user',
               displayName: firebaseUser.displayName || 'Engineer',
               photoURL: firebaseUser.photoURL || '',
               createdAt: serverTimestamp(),
@@ -67,7 +67,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const signIn = async () => {
     const provider = new GoogleAuthProvider();
-    await signInWithPopup(auth, provider);
+    try {
+      console.log('Attempting to sign in with Google...');
+      const result = await signInWithPopup(auth, provider);
+      console.log('Sign in successful:', result.user.email);
+    } catch (err: unknown) {
+      const error = err as { code?: string; message?: string };
+      console.error('Sign in error:', error.code, error.message);
+      if (error.code === 'auth/popup-blocked') {
+        alert('The sign-in popup was blocked by your browser. Please allow popups for this site.');
+      } else if (error.code === 'auth/operation-not-allowed') {
+        alert('Google Sign-In is not enabled in the Firebase Console. Please enable it in the Authentication > Sign-in method tab.');
+      } else {
+        alert(`Sign in failed: ${error.message}`);
+      }
+    }
   };
 
   const logout = () => signOut(auth);
