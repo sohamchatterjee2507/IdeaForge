@@ -1,0 +1,77 @@
+{
+  "entities": {
+    "User": {
+      "title": "User",
+      "description": "System user profiles",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string" },
+        "email": { "type": "string" },
+        "role": { "type": "string", "enum": ["admin", "student"] },
+        "displayName": { "type": "string" },
+        "photoURL": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["uid", "email", "role"]
+    },
+    "Idea": {
+      "title": "Idea",
+      "description": "Project or internship ideas",
+      "type": "object",
+      "properties": {
+        "title": { "type": "string" },
+        "description": { "type": "string" },
+        "domain": { "type": "string" },
+        "difficulty": { "type": "string", "enum": ["Beginner", "Intermediate", "Advanced"] },
+        "price": { "type": "number" },
+        "resources": { "type": "string" },
+        "implementationSteps": { "type": "string" },
+        "createdBy": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "purchaseCount": { "type": "number" },
+        "rating": { "type": "number" }
+      },
+      "required": ["title", "description", "domain", "difficulty", "price"]
+    },
+    "IdeaContent": {
+      "title": "Idea Content",
+      "description": "Private project implementation details and resources",
+      "type": "object",
+      "properties": {
+        "resources": { "type": "string" },
+        "implementationSteps": { "type": "string" }
+      },
+      "required": ["resources", "implementationSteps"]
+    },
+    "Purchase": {
+      "title": "Purchase",
+      "description": "Records of idea purchases",
+      "type": "object",
+      "properties": {
+        "studentUid": { "type": "string" },
+        "ideaId": { "type": "string" },
+        "purchasedAt": { "type": "string", "format": "date-time" },
+        "priceAtPurchase": { "type": "number" }
+      },
+      "required": ["studentUid", "ideaId", "purchasedAt"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": "User",
+      "description": "Stores user profile and role information"
+    },
+    "/ideas/{ideaId}": {
+      "schema": "Idea",
+      "description": "Stores project idea details"
+    },
+    "/ideaContent/{ideaId}": {
+      "schema": "IdeaContent",
+      "description": "Stores private implementation details, accessible only after purchase"
+    },
+    "/purchases/{purchaseId}": {
+      "schema": "Purchase",
+      "description": "Stores purchase records"
+    }
+  }
+}

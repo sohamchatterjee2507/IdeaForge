@@ -1,0 +1,38 @@
+@import "tailwindcss";
+
+@theme {
+  --color-brand-yellow: #FBC02D;
+  --color-brand-blue: #00E5FF;
+  --color-brand-charcoal: #121212;
+  --color-brand-border: #333333;
+  
+  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
+}
+
+@layer base {
+  body {
+    @apply bg-neutral-900 text-neutral-100 antialiased;
+    font-family: var(--font-sans);
+  }
+}
+
+.tech-grid {
+  background-image: radial-gradient(circle at 1px 1px, #ffffff05 1px, transparent 0);
+  background-size: 40px 40px;
+}
+
+.glow-yellow {
+  box-shadow: 0 0 15px rgba(251, 192, 45, 0.2);
+}
+
+.glow-blue {
+  box-shadow: 0 0 15px rgba(0, 229, 255, 0.2);
+}
+
+.card-tech {
+  @apply bg-neutral-800/40 border border-neutral-700/50 backdrop-blur-sm transition-all duration-300;
+}
+
+.card-tech:hover {
+  @apply border-brand-yellow/50 bg-neutral-800/60;
+}

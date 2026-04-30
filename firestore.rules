@@ -1,0 +1,130 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // 0. Global Safety Net
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // --- Helpers ---
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isEmailVerified() {
+      return isSignedIn() && request.auth.token.email_verified == true;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    function isAdmin() {
+      return isSignedIn() && (
+        exists(/databases/$(database)/documents/admins/$(request.auth.uid)) ||
+        request.auth.token.email == 'sohamchatterjee.25.07@gmail.com'
+      );
+    }
+
+    function hasPurchased(ideaId) {
+      return isSignedIn() && exists(/databases/$(database)/documents/purchases/$(request.auth.uid + "_" + ideaId));
+    }
+
+    // --- Validation Blueprints ---
+
+    function isValidUser(data) {
+      return data.keys().hasAll(['uid', 'email', 'role', 'displayName', 'photoURL', 'createdAt']) &&
+             data.keys().size() == 6 &&
+             data.uid == request.auth.uid &&
+             data.email is string &&
+             data.role in ['admin', 'student'] &&
+             data.displayName is string &&
+             data.photoURL is string &&
+             data.createdAt is timestamp;
+    }
+
+    function isValidIdea(data) {
+      return data.keys().hasAll(['title', 'description', 'domain', 'difficulty', 'price', 'createdBy', 'createdAt', 'purchaseCount', 'rating']) &&
+             data.keys().size() == 9 &&
+             data.title is string && data.title.size() <= 200 &&
+             data.description is string && data.description.size() <= 5000 &&
+             data.domain is string &&
+             data.difficulty in ['Beginner', 'Intermediate', 'Advanced'] &&
+             data.price is number && data.price >= 0 &&
+             data.createdBy is string &&
+             data.createdAt is timestamp &&
+             data.purchaseCount is number &&
+             data.rating is number;
+    }
+
+    function isValidIdeaContent(data) {
+      return data.keys().hasAll(['resources', 'implementationSteps']) &&
+             data.keys().size() == 2 &&
+             data.resources is string &&
+             data.implementationSteps is string;
+    }
+
+    function isValidPurchase(data) {
+      return data.keys().hasAll(['studentUid', 'ideaId', 'purchasedAt', 'priceAtPurchase']) &&
+             data.keys().size() == 4 &&
+             data.studentUid == request.auth.uid &&
+             data.ideaId is string &&
+             data.purchasedAt == request.time &&
+             data.priceAtPurchase is number;
+    }
+
+    // --- Collection Matches ---
+
+    match /users/{userId} {
+      allow get: if isSignedIn() && (isOwner(userId) || isAdmin());
+      allow list: if isAdmin();
+      allow create: if isSignedIn() && isOwner(userId) && isValidUser(incoming());
+      allow update: if isSignedIn() && isOwner(userId) && isValidUser(incoming()) && (
+        incoming().diff(existing()).affectedKeys().hasOnly(['displayName', 'photoURL'])
+      ) || isAdmin();
+    }
+
+    match /admins/{userId} {
+      // Identity mapping for faster lookups
+      allow read: if isSignedIn();
+    }
+
+    match /ideas/{ideaId} {
+      allow read: if true; // Public listings
+      allow create: if isAdmin() && isValidIdea(incoming());
+      allow update: if (isAdmin() && isValidIdea(incoming())) || (
+        // Only allow incrementing purchaseCount for students on purchase
+        isSignedIn() && isValidIdea(incoming()) && 
+        incoming().diff(existing()).affectedKeys().hasOnly(['purchaseCount']) &&
+        incoming().purchaseCount == existing().purchaseCount + 1
+      );
+      allow delete: if isAdmin();
+    }
+
+    match /ideaContent/{ideaId} {
+      allow get: if isAdmin() || hasPurchased(ideaId);
+      allow write: if isAdmin() && isValidIdeaContent(incoming());
+    }
+
+    match /purchases/{purchaseId} {
+      allow get: if isSignedIn() && (isOwner(existing().studentUid) || isAdmin());
+      allow list: if isSignedIn() && (resource.data.studentUid == request.auth.uid || isAdmin());
+      allow create: if isSignedIn() && isValidPurchase(incoming()) && (
+        purchaseId == request.auth.uid + "_" + incoming().ideaId &&
+        exists(/databases/$(database)/documents/ideas/$(incoming().ideaId))
+      );
+    }
+  }
+}
