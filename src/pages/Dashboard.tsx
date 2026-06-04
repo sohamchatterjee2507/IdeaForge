@@ -181,7 +181,7 @@ export default function Dashboard() {
                   <label className="text-[10px] uppercase font-black tracking-widest text-neutral-500 mb-1.5 block">Difficulty</label>
                   <select
                     value={newIdea.difficulty}
-                    onChange={e => setNewIdea({...newIdea, difficulty: e.target.value as any})}
+                    onChange={e => setNewIdea({...newIdea, difficulty: e.target.value as 'Beginner' | 'Intermediate' | 'Advanced'})}
                     className="w-full bg-neutral-900 border border-neutral-800 rounded-xl px-4 py-3 text-sm text-white focus:border-brand-yellow outline-none transition-colors appearance-none"
                   >
                     <option value="Beginner">Beginner</option>

@@ -33,20 +33,28 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (firebaseUser) {
         try {
           const userDoc = await getDoc(doc(db, 'users', firebaseUser.uid));
+          const isAdminEmail = firebaseUser.email === 'sohamchatterjee.25.07@gmail.com' || firebaseUser.email === 'magiktrove@gmail.com';
           
           if (userDoc.exists()) {
-            setProfile(userDoc.data() as UserProfile);
+            const data = userDoc.data() as UserProfile;
+            if (isAdminEmail && data.role !== 'admin') {
+              const updatedProfile = { ...data, role: 'admin' as const };
+              await setDoc(doc(db, 'users', firebaseUser.uid), { role: 'admin' }, { merge: true });
+              setProfile(updatedProfile);
+            } else {
+              setProfile(data);
+            }
           } else {
             // New user - default to student
-            // Except the specific admin email
-            const isAdmin = firebaseUser.email === 'sohamchatterjee.25.07@gmail.com';
+            // Except the specific admin emails
             const newProfile: UserProfile = {
               uid: firebaseUser.uid,
               email: firebaseUser.email || '',
-              role: isAdmin ? 'admin' : 'user',
+              role: isAdminEmail ? 'admin' : 'user',
               displayName: firebaseUser.displayName || 'Engineer',
               photoURL: firebaseUser.photoURL || '',
-              createdAt: serverTimestamp(),
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+              createdAt: serverTimestamp() as any,
             };
             
             await setDoc(doc(db, 'users', firebaseUser.uid), newProfile);

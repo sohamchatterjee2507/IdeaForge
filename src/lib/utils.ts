@@ -11,6 +11,7 @@ export interface FirestoreTimestamp {
   nanoseconds: number;
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function toDate(ts: any): Date {
   if (!ts) return new Date();
   if (ts instanceof Date) return ts;

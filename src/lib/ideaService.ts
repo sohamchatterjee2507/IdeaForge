@@ -149,7 +149,8 @@ export const ideaService = {
         return [];
       }
       const snapshot = await getDocs(q);
-      return snapshot.docs.map(d => ({ id: d.id, ...d.data() } as Purchase));
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      return snapshot.docs.map(d => ({ id: d.id, ...(d.data() as Record<string, any>) } as Purchase));
     } catch (error) {
       handleFirestoreError(error, OperationType.LIST, PURCHASES_COL);
       return [];
