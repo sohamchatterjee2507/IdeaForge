@@ -8,7 +8,7 @@ import { useState } from 'react';
 import { Link } from 'react-router-dom';
 
 export default function CartPage() {
-  const { items, removeItem, clearCart, total } = useCart();
+  const { items, removeItem, clearCart, total, refreshPurchases } = useCart();
   const { profile, signIn } = useAuth();
   const [loading, setLoading] = useState(false);
   const [completed, setCompleted] = useState<string | null>(null);
@@ -30,6 +30,7 @@ export default function CartPage() {
         }
       }
       clearCart();
+      await refreshPurchases();
       setCompleted(orderIds.join(', '));
     } catch (error) {
       console.error(error);

@@ -12,8 +12,11 @@ interface IdeaCardProps {
 }
 
 export default function IdeaCard({ idea, isPurchased, purchaseDate }: IdeaCardProps) {
-  const { items, addItem } = useCart();
+  const { items, addItem, purchases } = useCart();
   const isInCart = items.some(i => i.id === idea.id);
+  const purchaseForThisIdea = purchases.find(p => p.ideaId === idea.id);
+  const isPending = purchaseForThisIdea?.status === 'pending';
+  const isConfirmed = purchaseForThisIdea?.status === 'confirmed' || isPurchased;
 
   const difficultyColor: Record<string, string> = {
     Beginner: 'text-green-400 border-green-400/20 bg-green-400/5',
@@ -76,13 +79,20 @@ export default function IdeaCard({ idea, isPurchased, purchaseDate }: IdeaCardPr
             Details
           </Link>
           
-          {isPurchased ? (
+          {isConfirmed ? (
             <Link
               to={`/idea/${idea.id}`}
-              className="py-2.5 rounded-xl text-center text-xs font-black uppercase tracking-widest bg-green-500/10 text-green-400 border border-green-500/20"
+              className="py-2.5 rounded-xl text-center text-xs font-black uppercase tracking-widest bg-green-500/10 text-green-400 border border-green-500/20 hover:bg-green-500/20 transition-all"
             >
-              Unlocked
+              Acquired
             </Link>
+          ) : isPending ? (
+            <button
+              disabled
+              className="flex items-center justify-center py-2.5 rounded-xl text-[10px] font-black uppercase tracking-normal sm:tracking-wider bg-neutral-800 text-neutral-500 cursor-default border border-neutral-700/20 px-1"
+            >
+              Awaiting Verification
+            </button>
           ) : (
             <button
               onClick={() => addItem(idea)}

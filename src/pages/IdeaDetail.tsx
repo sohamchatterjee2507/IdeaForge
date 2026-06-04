@@ -23,12 +23,15 @@ import { motion, AnimatePresence } from 'motion/react';
 export default function IdeaDetail() {
   const { id } = useParams<{ id: string }>();
   const { profile, signIn } = useAuth();
-  const { items, addItem } = useCart();
+  const { items, addItem, purchases } = useCart();
   const [idea, setIdea] = useState<Idea | null>(null);
   const [content, setContent] = useState<IdeaContent | null>(null);
   const [loading, setLoading] = useState(true);
   const [isPurchased, setIsPurchased] = useState(false);
   const [activeMedia, setActiveMedia] = useState<string | null>(null);
+
+  const purchaseForThisIdea = purchases.find(p => p.ideaId === id);
+  const isPending = purchaseForThisIdea?.status === 'pending';
 
   useEffect(() => {
     const load = async () => {
@@ -181,6 +184,13 @@ export default function IdeaDetail() {
                     <button onClick={signIn} className="bg-brand-yellow text-neutral-900 px-8 py-3 rounded-xl font-black uppercase tracking-widest text-xs hover:scale-105 transition-transform">
                       Sign In to Unlock
                     </button>
+                  ) : isPending ? (
+                    <button 
+                      disabled
+                      className="bg-neutral-800 text-neutral-500 px-8 py-3 rounded-xl font-black uppercase tracking-widest text-xs cursor-default border border-neutral-700/20"
+                    >
+                      Awaiting Verification
+                    </button>
                   ) : (
                     <button 
                       onClick={() => idea && addItem(idea)} 
@@ -250,22 +260,31 @@ export default function IdeaDetail() {
                 </div>
               </div>
 
-              {!isPurchased ? (
-                <button
-                  onClick={() => idea && addItem(idea)}
-                  disabled={isInCart}
-                  className={`w-full py-4 rounded-2xl font-black uppercase tracking-widest text-xs flex items-center justify-center transition-all active:scale-95 ${
-                    isInCart 
-                    ? 'bg-neutral-800 text-neutral-500' 
-                    : 'bg-brand-yellow text-neutral-900 hover:bg-yellow-500 shadow-xl shadow-brand-yellow/10'
-                  }`}
-                >
-                  {isInCart ? <Check className="w-5 h-5 mr-2" /> : <ShoppingCart className="w-5 h-5 mr-2" />}
-                  {isInCart ? 'Added to Cart' : 'Join the Forge'}
-                </button>
+               {!isPurchased ? (
+                isPending ? (
+                  <button
+                    disabled
+                    className="w-full py-4 rounded-2xl font-black uppercase tracking-widest text-xs flex items-center justify-center bg-neutral-800 text-neutral-500 cursor-default border border-neutral-700/20"
+                  >
+                    Awaiting Verification
+                  </button>
+                ) : (
+                  <button
+                    onClick={() => idea && addItem(idea)}
+                    disabled={isInCart}
+                    className={`w-full py-4 rounded-2xl font-black uppercase tracking-widest text-xs flex items-center justify-center transition-all active:scale-95 ${
+                      isInCart 
+                      ? 'bg-neutral-800 text-neutral-500' 
+                      : 'bg-brand-yellow text-neutral-900 hover:bg-yellow-500 shadow-xl shadow-brand-yellow/10'
+                    }`}
+                  >
+                    {isInCart ? <Check className="w-5 h-5 mr-2" /> : <ShoppingCart className="w-5 h-5 mr-2" />}
+                    {isInCart ? 'Added to Cart' : 'Join the Forge'}
+                  </button>
+                )
               ) : (
                 <div className="w-full bg-green-500/10 text-green-400 py-4 rounded-2xl font-black uppercase tracking-widest text-xs border border-green-500/20 text-center flex items-center justify-center">
-                  <Check className="w-5 h-5 mr-2" /> Unlocked in My Forge
+                  <Check className="w-5 h-5 mr-2" /> Acquired
                 </div>
               )}
             </div>
