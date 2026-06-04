@@ -17,6 +17,7 @@ import {
 import { db } from './firebase';
 import { Idea, IdeaContent, Purchase } from '../types';
 import { handleFirestoreError, OperationType } from './firestore-errors';
+import { toDate } from './utils';
 
 const IDEAS_COL = 'ideas';
 const CONTENT_COL = 'ideaContent';
@@ -102,31 +103,48 @@ export const ideaService = {
     }
   },
 
-  async createPurchase(userId: string, idea: Idea) {
-    const purchaseId = `${userId}_${idea.id}`;
+  async createPurchase(userId: string, userEmail: string, idea: Idea) {
     try {
       const purchaseData = {
         userId,
+        userEmail,
         ideaId: idea.id,
         ideaTitle: idea.title,
-        status: 'pending',
-        createdAt: serverTimestamp(),
-        priceAtPurchase: idea.price
+        price: idea.price,
+        status: 'pending' as const,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        createdAt: serverTimestamp() as any,
       };
-      await setDoc(doc(db, PURCHASES_COL, purchaseId), purchaseData);
+      const docRef = await addDoc(collection(db, PURCHASES_COL), purchaseData);
+      return docRef.id;
     } catch (error) {
       handleFirestoreError(error, OperationType.WRITE, PURCHASES_COL);
+      throw error;
     }
   },
 
   async confirmPurchase(purchaseId: string, ideaId: string) {
     try {
+      const pDoc = await getDoc(doc(db, PURCHASES_COL, purchaseId));
+      if (!pDoc.exists()) return;
+      const data = pDoc.data();
+      const userId = data.userId;
+
       await runTransaction(db, async (transaction) => {
         const ideaRef = doc(db, IDEAS_COL, ideaId);
         const purchaseRef = doc(db, PURCHASES_COL, purchaseId);
+        const markerRef = doc(db, PURCHASES_COL, `${userId}_${ideaId}`);
         
         transaction.update(purchaseRef, {
           status: 'confirmed'
+        });
+        
+        transaction.set(markerRef, {
+          userId,
+          ideaId,
+          status: 'confirmed',
+          createdAt: serverTimestamp(),
+          isMarker: true
         });
         
         transaction.update(ideaRef, {
@@ -142,15 +160,32 @@ export const ideaService = {
     try {
       let q;
       if (adminMode) {
-        q = query(collection(db, PURCHASES_COL), orderBy('createdAt', 'desc'));
+        q = query(collection(db, PURCHASES_COL), where('status', '==', 'pending'));
       } else if (userId) {
-        q = query(collection(db, PURCHASES_COL), where('userId', '==', userId), orderBy('createdAt', 'desc'));
+        q = query(collection(db, PURCHASES_COL), where('userId', '==', userId));
       } else {
         return [];
       }
       const snapshot = await getDocs(q);
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      return snapshot.docs.map(d => ({ id: d.id, ...(d.data() as Record<string, any>) } as Purchase));
+      const list = snapshot.docs.map(d => ({ id: d.id, ...(d.data() as Record<string, any>) } as Purchase));
+
+      // Sort by createdAt desc in memory
+      list.sort((a, b) => {
+        const dateA = a.createdAt ? toDate(a.createdAt) : new Date(0);
+        const dateB = b.createdAt ? toDate(b.createdAt) : new Date(0);
+        return dateB.getTime() - dateA.getTime();
+      });
+
+      // Filter out markers
+      const filtered = list.filter(p => !p.isMarker);
+
+      if (adminMode) {
+        return filtered;
+      } else {
+        // Students can only see confirmed purchases
+        return filtered.filter(p => p.status === 'confirmed');
+      }
     } catch (error) {
       handleFirestoreError(error, OperationType.LIST, PURCHASES_COL);
       return [];

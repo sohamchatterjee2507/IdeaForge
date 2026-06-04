@@ -35,9 +35,12 @@ export type PurchaseStatus = 'pending' | 'confirmed';
 export interface Purchase {
   id: string;
   userId: string;
+  userEmail?: string;
   ideaId: string;
   status: PurchaseStatus;
   createdAt: Timestamp | { seconds: number; nanoseconds: number } | null;
   ideaTitle?: string;
+  price?: number;
   priceAtPurchase?: number;
+  isMarker?: boolean;
 }

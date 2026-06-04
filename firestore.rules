@@ -47,7 +47,7 @@ service cloud.firestore {
     // Purchases collection
     match /purchases/{purchaseId} {
       allow read: if isAdmin() || resource.data.userId == request.auth.uid;
-      allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid && request.resource.data.status == 'pending';
+      allow create: if isAdmin() || (isSignedIn() && request.resource.data.userId == request.auth.uid && request.resource.data.status == 'pending');
       allow update: if isAdmin(); 
       allow delete: if isAdmin();
     }

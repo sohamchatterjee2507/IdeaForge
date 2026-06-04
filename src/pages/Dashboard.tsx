@@ -244,10 +244,10 @@ export default function Dashboard() {
         </section>
 
         <section className="lg:col-span-2 space-y-12">
-          {/* Pending Orders Section */}
+          {/* Pending Purchases Section */}
           <div className="space-y-6">
             <h2 className="text-2xl font-black uppercase tracking-tight italic text-white flex items-center">
-              <ShoppingBag className="w-6 h-6 mr-3 text-brand-yellow" /> Pending Orders
+              <ShoppingBag className="w-6 h-6 mr-3 text-brand-yellow" /> Pending Purchases
               <span className="ml-4 px-2 py-0.5 bg-neutral-800 text-neutral-500 rounded text-xs font-mono">{purchases.filter(p => p.status === 'pending').length}</span>
             </h2>
             
@@ -261,16 +261,22 @@ export default function Dashboard() {
                       <div className="space-y-1">
                         <div className="flex items-center space-x-2">
                           <span className="text-brand-yellow font-black italic tracking-tight">{p.ideaTitle}</span>
-                          <span className="text-[10px] text-neutral-600 font-mono italic">#{p.id.slice(0, 8)}</span>
+                          <span className="text-xs text-neutral-500 font-mono">ID: {p.id}</span>
                         </div>
-                        <div className="text-xs text-neutral-400 font-medium">User UID: <span className="font-mono text-neutral-500">{p.userId}</span></div>
-                        <div className="text-[10px] text-neutral-500 font-bold uppercase tracking-widest">{formatINR(p.priceAtPurchase || 0)} • {toDate(p.createdAt).toLocaleDateString()}</div>
+                        <div className="text-xs text-neutral-400 font-medium">
+                          Email: <span className="font-mono text-neutral-300">{p.userEmail || 'N/A'}</span>
+                          <span className="mx-2 text-neutral-700">|</span>
+                          Status: <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-yellow-500/10 text-yellow-500 uppercase">{p.status}</span>
+                        </div>
+                        <div className="text-[10px] text-neutral-400 font-bold uppercase tracking-widest">
+                          Price: {formatINR(p.price || p.priceAtPurchase || 0)} • Date: {toDate(p.createdAt).toLocaleDateString()}
+                        </div>
                       </div>
                       <button
                         onClick={() => handleConfirmPurchase(p)}
                         className="bg-brand-yellow text-neutral-900 px-6 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest hover:scale-105 active:scale-95 transition-all shadow-lg shadow-brand-yellow/10"
                       >
-                        Confirm Payment
+                        Confirm Purchase
                       </button>
                     </div>
                   ))}

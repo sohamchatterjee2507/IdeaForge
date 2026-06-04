@@ -21,12 +21,16 @@ export default function CartPage() {
 
     setLoading(true);
     try {
+      const orderIds: string[] = [];
       // Create pending purchases for all items
       for (const item of items) {
-        await ideaService.createPurchase(profile.uid, item);
+        const orderId = await ideaService.createPurchase(profile.uid, profile.email, item);
+        if (orderId) {
+          orderIds.push(orderId);
+        }
       }
       clearCart();
-      setCompleted(profile.uid.slice(0, 8).toUpperCase());
+      setCompleted(orderIds.join(', '));
     } catch (error) {
       console.error(error);
       alert('Checkout failed. Please try again.');

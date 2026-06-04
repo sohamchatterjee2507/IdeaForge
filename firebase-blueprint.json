@@ -48,12 +48,16 @@
       "type": "object",
       "properties": {
         "userId": { "type": "string" },
+        "userEmail": { "type": "string" },
         "ideaId": { "type": "string" },
+        "ideaTitle": { "type": "string" },
         "status": { "type": "string", "enum": ["pending", "confirmed"] },
         "createdAt": { "type": "string", "format": "date-time" },
-        "priceAtPurchase": { "type": "number" }
+        "price": { "type": "number" },
+        "priceAtPurchase": { "type": "number" },
+        "isMarker": { "type": "boolean" }
       },
-      "required": ["userId", "ideaId", "status", "createdAt"]
+      "required": ["userId", "userEmail", "ideaId", "ideaTitle", "price", "status", "createdAt"]
     }
   },
   "firestore": {
