@@ -12,9 +12,7 @@ import {
   EyeOff,
   ShoppingBag,
   ShieldAlert,
-  Download,
-  HardDrive,
-  Monitor
+  Download
 } from 'lucide-react';
 
 export default function Dashboard() {
@@ -37,64 +35,36 @@ export default function Dashboard() {
   });
 
   // Backup / Replication System States
-  const [hddStatus, setHddStatus] = useState<'idle' | 'copying' | 'success'>('idle');
-  const [hddProgress, setHddProgress] = useState(0);
-  const [desktopStatus, setDesktopStatus] = useState<'idle' | 'copying' | 'success'>('idle');
-  const [desktopProgress, setDesktopProgress] = useState(0);
+  const [exporting, setExporting] = useState(false);
 
-  const handleExportDatabase = () => {
+  const handleExportDatabase = async () => {
+    setExporting(true);
     try {
-      const dataStr = JSON.stringify(
-        {
-          backupDate: '2026-06-04',
-          exportTimestamp: new Date().toISOString(),
-          ideas,
-          purchases,
-        },
-        null,
-        2
-      );
+      const backupData = await ideaService.exportFullDatabase();
+      const dataStr = JSON.stringify(backupData, null, 2);
       const blob = new Blob([dataStr], { type: 'application/json' });
       const url = URL.createObjectURL(blob);
+      
+      const now = new Date();
+      const pad = (num: number) => String(num).padStart(2, '0');
+      const year = now.getFullYear();
+      const month = pad(now.getMonth() + 1);
+      const day = pad(now.getDate());
+      const hour = pad(now.getHours());
+      const minute = pad(now.getMinutes());
+      const filename = `ideaforge-backup-${year}-${month}-${day}-${hour}-${minute}.json`;
+      
       const link = document.createElement('a');
       link.href = url;
-      link.download = `backup-2026-06-04.json`;
+      link.download = filename;
       link.click();
       URL.revokeObjectURL(url);
     } catch (err) {
       console.error('Failed to export database', err);
-      alert('Failed to generate database export.');
+      alert('Failed to generate complete database export.');
+    } finally {
+      setExporting(false);
     }
-  };
-
-  const handleCopyToHdd = () => {
-    setHddStatus('copying');
-    setHddProgress(0);
-    const interval = setInterval(() => {
-      setHddProgress((prev) => {
-        if (prev >= 100) {
-          clearInterval(interval);
-          setHddStatus('success');
-          return 100;
-        }
-        return prev + 20;
-      });
-    }, 150);
-  };
-
-  const handleCopyToDesktop = () => {
-    setDesktopStatus('copying');
-    setDesktopProgress(0);
-    const interval = setInterval(() => {
-      setDesktopProgress((prev) => {
-        if (prev >= 100) {
-          clearInterval(interval);
-          setDesktopStatus('success');
-          return 100;
-        }
-        return prev + 25;
-      });
-    }, 120);
   };
 
   useEffect(() => {
@@ -216,128 +186,17 @@ export default function Dashboard() {
             <h2 className="text-xl font-black uppercase italic text-white flex items-center">
               <Database className="w-5 h-5 mr-3 text-brand-yellow" /> Database Backup Systems
             </h2>
-            <p className="text-neutral-500 font-mono text-[10px] uppercase tracking-widest mt-1">Replicator Interface // Local Storage Targets</p>
+            <p className="text-neutral-500 font-mono text-[10px] uppercase tracking-widest mt-1">Disaster Recovery & System State Exporter</p>
           </div>
           <button
             onClick={handleExportDatabase}
-            className="self-start sm:self-auto bg-brand-yellow hover:bg-yellow-500 active:scale-95 text-neutral-900 px-6 py-3 rounded-xl font-black uppercase tracking-widest text-xs flex items-center gap-2 transition-all shadow-lg shadow-brand-yellow/10"
+            disabled={exporting}
+            className="self-start sm:self-auto bg-brand-yellow hover:bg-yellow-500 active:scale-95 disabled:scale-100 disabled:opacity-50 text-neutral-900 px-6 py-3 rounded-xl font-black uppercase tracking-widest text-xs flex items-center gap-2 transition-all shadow-lg shadow-brand-yellow/10"
           >
             <Download className="w-4 h-4" />
-            Export Database
+            {exporting ? 'Exporting...' : 'Export Database'}
           </button>
         </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4 border-t border-neutral-800/40">
-          {/* External HDD */}
-          <div className="bg-neutral-950/40 border border-neutral-800/60 rounded-2xl p-5 flex flex-col justify-between gap-4">
-            <div className="flex items-start justify-between">
-              <div className="flex items-center gap-3">
-                <div className="p-2.5 bg-neutral-900 rounded-xl border border-neutral-800 text-neutral-400">
-                  <HardDrive className="w-5 h-5" />
-                </div>
-                <div>
-                  <h3 className="text-sm font-bold text-white">External HDD</h3>
-                  <p className="text-[10px] text-neutral-500 font-mono">USB 3.2 Backup Unit (VOL_E)</p>
-                </div>
-              </div>
-              <div>
-                {hddStatus === 'success' && (
-                  <span className="px-2.5 py-0.5 rounded text-[8px] font-bold bg-green-500/10 text-green-400 border border-green-500/20 uppercase">
-                    Synced
-                  </span>
-                )}
-                {hddStatus === 'copying' && (
-                  <span className="px-2.5 py-0.5 rounded text-[8px] font-bold bg-yellow-500/10 text-brand-yellow border border-yellow-500/20 uppercase animate-pulse">
-                    Copying...
-                  </span>
-                )}
-                {hddStatus === 'idle' && (
-                  <span className="px-2.5 py-0.5 rounded text-[8px] font-bold bg-neutral-800 text-neutral-500 border border-neutral-700/20 uppercase">
-                    Ready
-                  </span>
-                )}
-              </div>
-            </div>
-
-            <div className="space-y-3">
-              {hddStatus === 'copying' && (
-                <div className="w-full bg-neutral-900 h-1.5 rounded-full overflow-hidden">
-                  <div className="bg-brand-yellow h-full transition-all duration-150" style={{ width: `${hddProgress}%` }} />
-                </div>
-              )}
-              <button
-                onClick={handleCopyToHdd}
-                disabled={hddStatus === 'copying'}
-                className={`w-full py-2.5 rounded-xl font-black uppercase text-[10px] tracking-widest transition-all border text-center ${
-                  hddStatus === 'success'
-                    ? 'bg-green-500/5 text-green-400 border-green-500/20 hover:bg-green-500/10'
-                    : hddStatus === 'copying'
-                    ? 'bg-neutral-900 border-neutral-800 text-neutral-600 cursor-not-allowed'
-                    : 'bg-neutral-900 border-neutral-800 hover:border-brand-yellow/40 text-neutral-300'
-                }`}
-              >
-                {hddStatus === 'success' ? 'Recopy to External HDD' : hddStatus === 'copying' ? `Transmitting (${hddProgress}%)` : 'Copy to External HDD'}
-              </button>
-            </div>
-          </div>
-
-          {/* Old Desktop */}
-          <div className="bg-neutral-950/40 border border-neutral-800/60 rounded-2xl p-5 flex flex-col justify-between gap-4">
-            <div className="flex items-start justify-between">
-              <div className="flex items-center gap-3">
-                <div className="p-2.5 bg-neutral-900 rounded-xl border border-neutral-800 text-neutral-400">
-                  <Monitor className="w-5 h-5" />
-                </div>
-                <div>
-                  <h3 className="text-sm font-bold text-white">Old Desktop</h3>
-                  <p className="text-[10px] text-neutral-500 font-mono">LAN Target (192.168.1.45)</p>
-                </div>
-              </div>
-              <div>
-                {desktopStatus === 'success' && (
-                  <span className="px-2.5 py-0.5 rounded text-[8px] font-bold bg-green-500/10 text-green-400 border border-green-500/20 uppercase">
-                    Synced
-                  </span>
-                )}
-                {desktopStatus === 'copying' && (
-                  <span className="px-2.5 py-0.5 rounded text-[8px] font-bold bg-yellow-500/10 text-brand-yellow border border-yellow-500/20 uppercase animate-pulse">
-                    Copying...
-                  </span>
-                )}
-                {desktopStatus === 'idle' && (
-                  <span className="px-2.5 py-0.5 rounded text-[8px] font-bold bg-neutral-800 text-neutral-500 border border-neutral-700/20 uppercase">
-                    Ready
-                  </span>
-                )}
-              </div>
-            </div>
-
-            <div className="space-y-3">
-              {desktopStatus === 'copying' && (
-                <div className="w-full bg-neutral-950 h-1.5 rounded-full overflow-hidden">
-                  <div className="bg-brand-yellow h-full transition-all duration-150" style={{ width: `${desktopProgress}%` }} />
-                </div>
-              )}
-              <button
-                onClick={handleCopyToDesktop}
-                disabled={desktopStatus === 'copying'}
-                className={`w-full py-2.5 rounded-xl font-black uppercase text-[10px] tracking-widest transition-all border text-center ${
-                  desktopStatus === 'success'
-                    ? 'bg-green-500/5 text-green-400 border-green-500/20 hover:bg-green-500/10'
-                    : desktopStatus === 'copying'
-                    ? 'bg-neutral-900 border-neutral-800 text-neutral-600 cursor-not-allowed'
-                    : 'bg-neutral-900 border-neutral-800 hover:border-brand-yellow/40 text-neutral-300'
-                }`}
-              >
-                {desktopStatus === 'success' ? 'Recopy to Old Desktop' : desktopStatus === 'copying' ? `Transmitting (${desktopProgress}%)` : 'Copy to Old Desktop'}
-              </button>
-            </div>
-          </div>
-        </div>
-
-        <p className="text-[10px] text-neutral-600 font-mono text-center">
-          * Dynamic file generated on demand as <span className="text-neutral-400 font-semibold underline">backup-2026-06-04.json</span> containing all active forge repository and transaction schemas.
-        </p>
       </div>
 
       <div className="grid lg:grid-cols-3 gap-12 items-start">

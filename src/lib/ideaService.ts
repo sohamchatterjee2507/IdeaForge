@@ -200,5 +200,69 @@ export const ideaService = {
     } catch {
       return false;
     }
+  },
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  serializeValue(val: any): any {
+    if (val === null || val === undefined) {
+      return val;
+    }
+    if (typeof val === 'object') {
+      if (typeof val.toDate === 'function' && val.seconds !== undefined) {
+        return {
+          seconds: val.seconds,
+          nanoseconds: val.nanoseconds,
+          _type: 'timestamp',
+          isoString: val.toDate().toISOString()
+        };
+      }
+      if (val instanceof Date) {
+        return val.toISOString();
+      }
+      if (Array.isArray(val)) {
+        return val.map(item => this.serializeValue(item));
+      }
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const result: Record<string, any> = {};
+      for (const key of Object.keys(val)) {
+        result[key] = this.serializeValue(val[key]);
+      }
+      return result;
+    }
+    return val;
+  },
+
+  async exportFullDatabase() {
+    const collectionsToBackup = ['users', 'ideas', 'ideaContent', 'purchases'];
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const collections: Record<string, any[]> = {};
+    const statistics: Record<string, number> = {};
+
+    for (const colName of collectionsToBackup) {
+      try {
+        const snapshot = await getDocs(collection(db, colName));
+        const docs = snapshot.docs.map(docSnapshot => {
+          const data = docSnapshot.data();
+          const serializedData = this.serializeValue(data);
+          return {
+            id: docSnapshot.id,
+            ...serializedData
+          };
+        });
+        collections[colName] = docs;
+        statistics[colName] = docs.length;
+      } catch (err) {
+        console.error(`Error exporting collection in backup: ${colName}`, err);
+        collections[colName] = [];
+        statistics[colName] = 0;
+      }
+    }
+
+    return {
+      backupDate: new Date().toISOString().split('T')[0],
+      exportTimestamp: new Date().toISOString(),
+      statistics,
+      collections
+    };
   }
 };
