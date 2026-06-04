@@ -183,8 +183,8 @@ export const ideaService = {
       if (adminMode) {
         return filtered;
       } else {
-        // Students can only see confirmed purchases
-        return filtered.filter(p => p.status === 'confirmed');
+        // Students can see both pending and confirmed purchases now (for Vault segregation)
+        return filtered;
       }
     } catch (error) {
       handleFirestoreError(error, OperationType.LIST, PURCHASES_COL);

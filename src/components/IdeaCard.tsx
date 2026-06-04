@@ -8,9 +8,10 @@ import { formatINR } from '../lib/utils';
 interface IdeaCardProps {
   idea: Idea;
   isPurchased?: boolean;
+  purchaseDate?: Date;
 }
 
-export default function IdeaCard({ idea, isPurchased }: IdeaCardProps) {
+export default function IdeaCard({ idea, isPurchased, purchaseDate }: IdeaCardProps) {
   const { items, addItem } = useCart();
   const isInCart = items.some(i => i.id === idea.id);
 
@@ -45,6 +46,12 @@ export default function IdeaCard({ idea, isPurchased }: IdeaCardProps) {
       <h3 className="text-xl font-bold mb-2 group-hover:text-brand-yellow transition-colors leading-tight min-h-[3rem]">
         {idea.title}
       </h3>
+      
+      {purchaseDate && (
+        <span className="text-[10px] text-neutral-500 font-mono uppercase tracking-wider mb-3 block">
+          Acquired: {purchaseDate.toLocaleDateString()}
+        </span>
+      )}
       
       <p className="text-neutral-500 text-sm mb-6 line-clamp-2">
         {idea.description}
