@@ -18,6 +18,12 @@ export default function Navbar() {
     setTimeout(() => setCopied(false), 2000);
   };
 
+  const setScrollTop = (node: HTMLDivElement | null) => {
+    if (node) {
+      node.scrollTop = 0;
+    }
+  };
+
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 border-b border-neutral-800 bg-neutral-900/80 backdrop-blur-md">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -172,13 +178,13 @@ export default function Navbar() {
 
       {/* Guide modal to display purchase cycle */}
       {isGuideOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+        <div className="fixed inset-0 z-50 flex items-start justify-center pt-8 pb-8 px-4">
           <div
             className="fixed inset-0 bg-black/70 backdrop-blur-md"
             onClick={() => setIsGuideOpen(false)}
           />
-          <div className="relative bg-neutral-900 border border-neutral-800 max-w-lg w-full rounded-3xl p-6 sm:p-8 space-y-6 shadow-2xl z-10 max-h-[90vh] overflow-y-auto">
-            <div className="flex items-center justify-between border-b border-neutral-800 pb-4">
+          <div className="relative bg-neutral-900 border border-neutral-800 max-w-lg w-full rounded-3xl p-6 sm:p-8 shadow-2xl z-10 max-h-[calc(100vh-4rem)] flex flex-col gap-y-6">
+            <div className="flex items-center justify-between border-b border-neutral-800 pb-4 flex-shrink-0">
               <h3 className="text-base font-black uppercase italic text-white flex items-center">
                 <span className="text-base mr-2">📖</span> HOW PURCHASING WORKS
               </h3>
@@ -190,7 +196,7 @@ export default function Navbar() {
               </button>
             </div>
 
-            <div className="space-y-4">
+            <div ref={setScrollTop} className="space-y-4 overflow-y-auto flex-1 pr-1 min-h-0 [scrollbar-width:thin]">
               {[
                 "Browse the Marketplace and select a blueprint.",
                 "Add the blueprint to your cart.",
@@ -217,7 +223,7 @@ export default function Navbar() {
 
             <button
               onClick={() => setIsGuideOpen(false)}
-              className="w-full py-3 bg-brand-yellow hover:bg-yellow-500 text-neutral-900 uppercase font-black tracking-widest text-xs transition-all active:scale-95 rounded-xl shadow-lg shadow-brand-yellow/10"
+              className="w-full py-3 bg-brand-yellow hover:bg-yellow-500 text-neutral-900 uppercase font-black tracking-widest text-xs transition-all active:scale-95 rounded-xl shadow-lg shadow-brand-yellow/10 flex-shrink-0"
             >
               UNDERSTOOD
             </button>
