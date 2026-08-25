@@ -1,20 +1,57 @@
-<div align="center">
-<img width="1200" height="475" alt="GHBanner" src="https://ai.google.dev/static/site-assets/images/share-ais-513315318.png" />
-</div>
+# IdeaForge
 
-# Run and deploy your AI Studio app
+**An online marketplace for engineering students to discover and purchase project ideas for internships and academic work.**
 
-This contains everything you need to run your app locally.
+[![Live Demo](https://img.shields.io/badge/Live-Demo-000000?style=for-the-badge&logo=vercel&logoColor=white)](https://idea-forge-beige.vercel.app/)
 
-View your app in AI Studio: https://ai.studio/apps/0885db04-f4f3-495c-b667-36958b7acb81
+## Overview
 
-## Run Locally
+IdeaForge is a full-stack web application built to make project discovery easier for engineering students.
 
-**Prerequisites:**  Node.js
+Users can browse project ideas, explore detailed project information, add ideas to a cart, and manage their purchases through an authenticated dashboard.
 
+The application also includes administrative functionality for managing project ideas and controlling their visibility on the marketplace.
 
-1. Install dependencies:
-   `npm install`
-2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
-3. Run the app:
-   `npm run dev`
+## Features
+
+- 🔐 User authentication and protected application flows
+- 🔎 Browse and explore project ideas by domain
+- 📄 Detailed project pages with project information and resources
+- 🛒 Cart and checkout flow
+- 👤 User dashboard and purchased-idea management
+- 🧑‍💼 Administrative project management
+- 👁️ Visibility controls for marketplace listings
+- ☁️ Firebase Authentication and Cloud Firestore integration
+- 📱 Responsive interface for desktop and mobile use
+
+## Tech Stack
+
+### Frontend
+
+- React
+- TypeScript
+- Vite
+- Tailwind CSS
+- React Router
+- Lucide React
+- Motion
+
+### Backend & Data
+
+- Firebase Authentication
+- Cloud Firestore
+
+### Deployment
+
+- Vercel
+
+## Project Structure
+
+```text
+src/
+├── components/     # Reusable UI components
+├── pages/          # Application pages and views
+├── lib/            # Authentication, cart, Firebase and data services
+├── App.tsx         # Application routing and composition
+├── main.tsx        # Application entry point
+└── types.ts        # Shared TypeScript types
