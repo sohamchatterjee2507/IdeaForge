@@ -14,15 +14,15 @@ The application also includes administrative functionality for managing project 
 
 ## Features
 
-- 🔐 User authentication and protected application flows
-- 🔎 Browse and explore project ideas by domain
-- 📄 Detailed project pages with project information and resources
-- 🛒 Cart and checkout flow
-- 👤 User dashboard and purchased-idea management
-- 🧑‍💼 Administrative project management
-- 👁️ Visibility controls for marketplace listings
-- ☁️ Firebase Authentication and Cloud Firestore integration
-- 📱 Responsive interface for desktop and mobile use
+- User authentication and protected application flows
+- Browse and explore project ideas by domain
+- Detailed project pages with project information and resources
+- Cart and checkout flow
+- User dashboard and purchased-idea management
+- Administrative project management
+- Visibility controls for marketplace listings
+- Firebase Authentication and Cloud Firestore integration
+- Responsive interface for desktop and mobile use
 
 ## Tech Stack
 
@@ -55,3 +55,5 @@ src/
 ├── App.tsx         # Application routing and composition
 ├── main.tsx        # Application entry point
 └── types.ts        # Shared TypeScript types
+
+```
